@@ -21,7 +21,7 @@ vastai instance created with
 
 vastai create instance somenumberhere   --image vastai/base-image:cuda-12.8.1-cudnn-devel-ubuntu22.04   --disk 80 --direct --ssh
 
-```
+```csharp
 =================================================================================
 lm_eval Results Comparison
 =================================================================================
