@@ -21,7 +21,7 @@ vastai instance created with
 
 vastai create instance somenumberhere   --image vastai/base-image:cuda-12.8.1-cudnn-devel-ubuntu22.04   --disk 80 --direct --ssh
 
-
+```
 =================================================================================
 lm_eval Results Comparison
 =================================================================================
@@ -47,7 +47,7 @@ mbpp [pass_at_1]                                  0.7000     0.6700     -0.0300
 =================================================================================
 
 Average (all metrics)                             0.7610     0.7488     -0.0122
-
+```
 
 ### Qwen2.5-Coder-32B: Layers 7, 8, 9 duplicated once
 
